@@ -19,7 +19,7 @@
 
 <br>
 
-[🌐 Live Patient Portal](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/) • [🛡️ Live Admin/Doctor Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html) • [🏗️ System Architecture Guide](docs/SYSTEM_ARCHITECTURE.md) • [📘 Interview Q&A Reference](INTERVIEW_QA_REFERENCE.md)
+[🌐 Live Patient Portal](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/) • [🛡️ Live Admin/Doctor Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html) • [🏗️ System Architecture Guide](docs/SYSTEM_ARCHITECTURE.md)
 
 </div>
 
@@ -311,7 +311,6 @@ Prescripto-AI/
 ├── ScreenShots/                       # Verified project screenshots
 ├── docker-compose.yml                 # Multi-container orchestration (webserver:80, backend:4000)
 ├── dockerfile                         # Multi-stage Docker build (Frontend + Admin + Nginx)
-├── INTERVIEW_QA_REFERENCE.md          # 365+ Staff-Level Technical Interview Q&A guide
 └── README.md                          # Primary project documentation
 ```
 
@@ -735,4 +734,3 @@ The backend codebase declares an **ISC License** in `backend/package.json`. Root
 - **Live Demo (Patient):** [Launch User Dashboard](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/)
 - **Live Demo (Admin):** [Launch Admin Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html)
 - **Architecture Documentation:** [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)
-- **Technical Interview Q&A Reference:** [`INTERVIEW_QA_REFERENCE.md`](INTERVIEW_QA_REFERENCE.md)
