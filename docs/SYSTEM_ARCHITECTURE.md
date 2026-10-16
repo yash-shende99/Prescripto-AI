@@ -1,6 +1,6 @@
 # Prescripto — System Architecture & Interview Guide
 
-> **Document Type:** Comprehensive Reverse-Engineered System Architecture, High-Level & Low-Level Design (HLD/LLD), and Staff-Level SDE Interview Defense Guide  
+> **Document Type:** Comprehensive Reverse-Engineered System Architecture, High-Level & Low-Level Design (HLD/LLD)
 > **Target Repository:** `yash-shende99/Prescripto-AI` (Prescripto v1.0.0)  
 > **Source Verification:** Fully derived from static source code analysis, routing configurations, database schemas, model serializations, and container infrastructure.
 
@@ -25,9 +25,6 @@
 15. [Deployment and Runtime Architecture](#15-deployment-and-runtime-architecture)
 16. [Important Architectural Decisions and Trade-offs](#16-important-architectural-decisions-and-trade-offs)
 17. [Limitations, Technical Debt and Future Improvements](#17-limitations-technical-debt-and-future-improvements)
-18. [Interview Explanation Guide](#18-interview-explanation-guide)
-19. [Interview Questions and Answers](#19-interview-questions-and-answers)
-20. [Architecture Learning Checklist](#20-architecture-learning-checklist)
 
 ---
 
@@ -878,70 +875,4 @@ flowchart TB
 
 ---
 
-## 18. Interview Explanation Guide
-
-### 18.1 The 30-Second Elevator Pitch
-> *"Prescripto is a full-stack healthcare operations platform that solves specialist misallocation and scheduling conflicts. Patients input their physical symptoms into an integrated ML triage engine powered by Scikit-Learn, which predicts disease likelihoods and the appropriate medical specialist. The scheduling engine dynamically generates conflict-free 30-minute consultation slots over a rolling 7-day window. The platform includes full Razorpay digital payment processing and role-based portals for Patients, Doctors, and Administrators, backed by a Node.js API, MongoDB, and an Nginx reverse proxy."*
-
-### 18.2 The 2-Minute Architecture Pitch
-> *"Architecturally, Prescripto follows a decoupled, three-tier microservices pattern. On the frontend, we maintain two independent React 18 single-page applications compiled with Vite: one for patients and another for hospital administrators and doctors. Both are unified behind an Nginx reverse proxy that handles edge routing on port 80.
->
-> The core application backend is built on Node.js and Express in ES module syntax, exposing RESTful domains for admin, doctor, and patient workflows. We chose MongoDB with Mongoose because our scheduling domain relies on dynamic nested maps of booked dates and immutable denormalized snapshots of patient and physician records at the moment of booking.
->
-> To ensure our Node event loop remains non-blocking, we decoupled the diagnostic machine learning pipeline into a standalone Python Flask service. It vectorizes patient symptoms against a 132-dimensional feature space, executing pre-trained tree ensembles to return differential diagnoses, confidence scores, and specialist recommendations in under 50 milliseconds. Security is enforced via role-isolated JWT middleware across three distinct authorization schemes."*
-
-### 18.3 The 5-to-10-Minute Deep Architecture Walkthrough
-When presenting the project in a system design interview:
-1. **Start with the Domain Challenge:** Explain outpatient clinic bottlenecks — patients booking cardiologists for simple GERD, double-booked slots, and manual scheduling overhead.
-2. **Draw the System Context:** Sketch Nginx on the edge routing traffic to the Patient SPA, Admin/Doctor SPA, and the Express API. Emphasize why the Python ML service is decoupled.
-3. **Explain the Dynamic Slot Algorithm:** Walk through `Appoinments.jsx`. Contrast the $O(1)$ dictionary lookup against pre-generating millions of empty database rows.
-4. **Walk Through the End-to-End Flow:** Trace a request from symptom selection -> Flask triage -> severity classification -> slot booking -> Razorpay order creation -> payment verification.
-5. **Discuss Security & Data Integrity:** Highlight Bcrypt password salting, role-segregated JWT headers (`token`, `dtoken`, `atoken`), and immutable snapshotting in `appointmentModel`.
-6. **Critique and Defend Technical Decisions:** Honestly discuss the trade-offs: why MongoDB was preferred over SQL, the concurrency race condition in read-modify-write booking, and how to fix it with MongoDB `$addToSet` and Redis distributed locking.
-
----
-
-## 19. Interview Questions and Answers
-
-#### Q1: Why did you choose MongoDB instead of PostgreSQL for storing doctor availability?
-**Answer:** The primary driver was the schema representation of the doctor calendar and historical appointments. In our system, doctors maintain dynamic calendars where booked slots are stored as nested dictionaries of arrays: `slots_booked: { "16_10_2026": ["10:00 AM", "10:30 AM"] }`. In MongoDB, this is stored natively as a BSON subdocument with $O(1)$ key access. In a relational database, this would require a separate `doctor_slots` table with millions of rows and continuous foreign key join operations. Furthermore, MongoDB allows storing immutable snapshots of `userData` and `docData` directly inside the `appointment` document without junction tables.
-
-#### Q2: How do you prevent two patients from booking the exact same time slot concurrently?
-**Answer:** In the current implementation, the backend checks `if (slots_booked[slotDate].includes(slotTime))` before updating. Under high concurrency, this read-modify-write cycle is susceptible to race conditions. To make this production-ready, I would refactor the booking mutation to an atomic MongoDB conditional query using `$addToSet`:
-```javascript
-const updated = await doctorModel.findOneAndUpdate(
-    { _id: docId, [`slots_booked.${slotDate}`]: { $ne: slotTime } },
-    { $addToSet: { [`slots_booked.${slotDate}`]: slotTime } }
-);
-if (!updated) throw new Error("Slot already booked");
-```
-Because MongoDB guarantees document-level atomicity on write operations, only the first request can successfully append to the array.
-
-#### Q3: How does the AI model guarantee zero hallucinations during patient triage?
-**Answer:** We deliberately avoided autoregressive Large Language Models (LLMs) like GPT-4 for diagnostic triage because generative models sample from probability distributions over text tokens, introducing risks of hallucinating non-existent medical conditions. Instead, we use supervised Scikit-Learn decision tree ensembles trained on structured tabular data. The input is strictly constrained to a 132-symptom feature space, and the output is bounded to exactly 41 predefined clinical diagnoses and 7 registered hospital specialties with deterministic confidence percentages calculated via `predict_proba()`.
-
-#### Q4: Why is the Python Flask service separate from the Express backend?
-**Answer:** Machine learning inference is CPU-bound. Vectorizing a 132-dimensional feature array and traversing decision tree ensembles consumes significant processor cycles. Node.js operates on a single-threaded event loop; running CPU-intensive matrix operations inside Node would block asynchronous I/O, degrading response times for all concurrent HTTP requests across the hospital. Decoupling the model into a Python Flask microservice isolates CPU compute, preserves Node's event-driven throughput, and allows horizontal scaling of the ML service independently.
-
-#### Q5: What security vulnerability exists in the current Admin authentication mechanism?
-**Answer:** In `adminController.js#L97`, the admin JWT is signed with `email + password` as the payload: `jwt.sign(email+password, process.env.JWT_SECRET)`. Because JWT payloads are merely base64url-encoded strings and not encrypted, any user who inspects the token in the browser's local storage can decode the payload (`atob(token.split('.')[1])`) and recover the plaintext administrative password. The correct implementation is to store a generic role identifier in the payload (`{ role: 'admin', sub: email }`) with an explicit expiration window.
-
----
-
-## 20. Architecture Learning Checklist
-
-- [ ] **Stage 1: System Overview & System Context**
-  - *Goal:* Explain the 3 user personas, the decoupling of the 4 major services (Frontend, Admin, Node API, Flask ML), and draw the System Context diagram from memory.
-- [ ] **Stage 2: End-to-End Request Lifecycles**
-  - *Goal:* Trace the complete flow of a patient from symptom selection to ML prediction, severity triage, slot reservation, and Razorpay payment verification without looking at code.
-- [ ] **Stage 3: APIs & Database Schemas**
-  - *Goal:* Recite the three Mongoose schemas (`User`, `Doctor`, `Appointment`), explain why `{ minimize: false }` is required on `Doctor`, and defend the choice of BSON denormalization.
-- [ ] **Stage 4: Low-Level Design & Core Algorithms**
-  - *Goal:* Explain how the dynamic 7-day 30-minute slot allocation algorithm works in `Appoinments.jsx` and describe the 132-symptom vectorization in `app.py`.
-- [ ] **Stage 5: Security, Concurrency & Trade-offs**
-  - *Goal:* Critique the read-modify-write race condition in slot booking, explain the admin JWT encoding vulnerability, and detail how to refactor both using atomic database updates and HMAC signatures.
-- [ ] **Stage 6: The Staff-Level Interview Walkthrough**
-  - *Goal:* Deliver the 2-minute architecture pitch and answer the top 5 technical interview questions fluently and defensibly.
-
----
 *End of System Architecture & Interview Guide.*
