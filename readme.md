@@ -19,7 +19,7 @@
 
 <br>
 
-[🌐 Live Patient Portal](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/) • [🛡️ Live Admin/Doctor Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html) • [🏗️ System Architecture Guide](docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md) • [📘 Interview Q&A Reference](INTERVIEW_QA_REFERENCE.md)
+[🌐 Live Patient Portal](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/) • [🛡️ Live Admin/Doctor Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html) • [🏗️ System Architecture Guide](docs/SYSTEM_ARCHITECTURE.md) • [📘 Interview Q&A Reference](INTERVIEW_QA_REFERENCE.md)
 
 </div>
 
@@ -228,7 +228,7 @@ flowchart TD
     A -.->|"Checkout Modal"| H
 ```
 
-> 📖 **Deep Dive Available:** For a detailed breakdown including HLD/LLD diagrams, concurrency race condition analyses, and complete sequence diagrams, see [`docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md`](docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md).
+> 📖 **Deep Dive Available:** For a detailed breakdown including HLD/LLD diagrams, concurrency race condition analyses, and complete sequence diagrams, see [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md).
 
 ---
 
@@ -305,7 +305,7 @@ Prescripto-AI/
 │   └── app.py                         # Flask REST API serving POST /predict (Port 5000)
 │
 ├── docs/
-│   └── SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md # 20-section reverse-engineered architecture guide
+│   └── SYSTEM_ARCHITECTURE.md # 20-section reverse-engineered architecture guide
 ├── nginx/
 │   └── default.conf                   # Reverse proxy configuration for edge routing
 ├── ScreenShots/                       # Verified project screenshots
@@ -490,7 +490,7 @@ journey
 
 ## 📡 API Reference Overview
 
-Detailed endpoint contracts are documented in [`docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md`](docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md#9-api-design). Below is a summary:
+Detailed endpoint contracts are documented in [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md#9-api-design). Below is a summary:
 
 ### Patient Routes (`/api/user`)
 - `POST /register` — Register a new patient account
@@ -690,7 +690,7 @@ flowchart LR
 ## 🗺️ Known Limitations & Roadmap
 
 ### Known Limitations
-- **Single-Threaded Slot Mutation:** Slot booking uses an application-level read-modify-write cycle. Under high concurrency, simultaneous requests for the exact same slot could result in double-booking. (See [Architecture Guide](docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md#13-performance-and-scalability) for the atomic `$addToSet` fix).
+- **Single-Threaded Slot Mutation:** Slot booking uses an application-level read-modify-write cycle. Under high concurrency, simultaneous requests for the exact same slot could result in double-booking. (See [Architecture Guide](docs/SYSTEM_ARCHITECTURE.md#13-performance-and-scalability) for the atomic `$addToSet` fix).
 - **Synchronous Upload Processing:** Physician photo uploads are processed synchronously within the HTTP request cycle rather than being offloaded to an asynchronous background worker.
 
 ### Future Roadmap
@@ -734,5 +734,5 @@ The backend codebase declares an **ISC License** in `backend/package.json`. Root
 - **Developer:** [Yash Shende](https://github.com/yash-shende99)
 - **Live Demo (Patient):** [Launch User Dashboard](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/)
 - **Live Demo (Admin):** [Launch Admin Panel](http://ec2-13-60-60-176.eu-north-1.compute.amazonaws.com/admin/index.html)
-- **Architecture Documentation:** [`docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md`](docs/SYSTEM_ARCHITECTURE_AND_INTERVIEW_GUIDE.md)
+- **Architecture Documentation:** [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md)
 - **Technical Interview Q&A Reference:** [`INTERVIEW_QA_REFERENCE.md`](INTERVIEW_QA_REFERENCE.md)
